@@ -1,0 +1,118 @@
+[project]
+site_name = "anatplot"
+site_url = "https://chenkun.me/anatplot/"
+site_description = "Simple anatomical surface scenes"
+repo_url = "https://github.com/const7/anatplot"
+repo_name = "const7/anatplot"
+docs_dir = "docs"
+site_dir = "site"
+exclude_docs = """
+scripts/
+"""
+nav = [
+    { "Get started" = "index.md" },
+    { "Tutorials" = [
+        { "SurfacePlot" = [
+            { "Basics" = "tutorials/surfaceplot-basics.md" },
+            { "Advanced" = "tutorials/surfaceplot-advanced.md" },
+        ] },
+        { "Regions (ROIPlot)" = "tutorials/roiplot.md" },
+        { "Whole-brain contacts (VolumePlot)" = "tutorials/volumeplot.md" },
+    ] },
+    { "Use your own data" = "use-your-own-data.md" },
+    { "Save and display" = "save-and-display.md" },
+    { "Datasets" = "datasets.md" },
+    { "API reference" = [
+        { "Plotting" = "api/plotting.md" },
+        { "Datasets" = "api/datasets.md" },
+        { "Anatomy" = "api/anatomy.md" },
+    ] },
+    { "Development" = [
+        { "Contributing" = "development/contributing.md" },
+    ] },
+]
+
+[project.theme]
+variant = "modern"
+font = false
+logo = "assets/images/logo.png"
+favicon = "assets/images/logo.png"
+features = [
+    "content.code.copy",
+    "navigation.sections",
+    "navigation.expand",
+    "navigation.top",
+    "navigation.footer",
+    "navigation.path",
+    "toc.follow",
+]
+
+[project.theme.icon]
+repo = "fontawesome/brands/github"
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme: light)"
+scheme = "default"
+toggle.icon = "lucide/sun"
+toggle.name = "Switch to dark mode"
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme: dark)"
+scheme = "slate"
+toggle.icon = "lucide/moon"
+toggle.name = "Switch to light mode"
+
+[project.markdown_extensions.footnotes]
+
+[project.markdown_extensions.admonition]
+
+[project.markdown_extensions."pymdownx.superfences"]
+custom_fences = [
+    { name = "mermaid", class = "mermaid", format = "pymdownx.superfences.fence_code_format" },
+]
+
+[project.markdown_extensions."pymdownx.tabbed"]
+alternate_style = true
+
+[project.markdown_extensions."pymdownx.highlight"]
+linenums = true
+linenums_style = "pymdownx-inline"
+# API signatures and examples share pages; omit duplicate per-block line IDs.
+anchor_linenums = false
+line_spans = ""
+
+[project.plugins.mkdocstrings.handlers.python]
+paths = ["."]
+inventories = [
+    "https://docs.python.org/3/objects.inv",
+    "https://numpy.org/doc/stable/objects.inv",
+    "https://docs.pyvista.org/objects.inv",
+    "https://nipy.org/nibabel/objects.inv",
+    "https://matplotlib.org/stable/objects.inv",
+]
+
+[project.plugins.markdown-exec]
+languages = ["python"]
+
+[project.plugins.mkdocstrings.handlers.python.options]
+# API semantics live beside the code; reference pages only select public objects.
+docstring_style = "numpy"
+docstring_section_style = "table"
+merge_init_into_class = true
+separate_signature = true
+show_signature_annotations = true
+signature_crossrefs = true
+show_root_heading = true
+show_root_full_path = false
+show_object_full_path = false
+heading_level = 2
+members_order = "source"
+inherited_members = true
+show_source = false
+members = true
+filters = ["!^_"]
+
+[project.validation]
+# Broken guide/API links should fail a strict documentation build.
+invalid_links = true
+invalid_link_anchors = true
