@@ -1,0 +1,46 @@
+name: Docs
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    env:
+      # Mesa depth peeling needs multisampling disabled.
+      PYVISTA_MULTI_SAMPLES: "0"
+    name: Build docs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.3.0
+        with:
+          python-version: "3.13"
+
+      - run: |
+          sudo apt-get update
+          sudo apt-get install -y libopengl0 libgl1 libegl1 libxrender1 xvfb
+
+      - run: xvfb-run -a uv run --frozen zensical build --clean --strict
+
+      - uses: actions/upload-pages-artifact@v5
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && !github.event.repository.private
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && !github.event.repository.private
+    runs-on: ubuntu-latest
+    environment: github-pages
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - uses: actions/configure-pages@v6
+      - uses: actions/deploy-pages@v5

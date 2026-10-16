@@ -1,0 +1,75 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    env:
+      # Mesa depth peeling needs multisampling disabled.
+      PYVISTA_MULTI_SAMPLES: "0"
+    name: Python ${{ matrix.python }}
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.10", "3.13"]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@v10.3.0
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Install graphics libraries and dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libopengl0 libgl1 libegl1 libxrender1 xvfb
+          uv sync --locked
+
+      - name: Check source and run tests
+        run: |
+          uv run --no-sync ruff check .
+          uv run --no-sync ruff format --check .
+          uvx mypy anatplot
+          xvfb-run -a uv run --no-sync pytest
+
+      - name: Build and check distributions
+        if: matrix.python == '3.13'
+        run: |
+          uv build --no-sources
+          uvx twine check dist/*
+
+      - name: Check installed wheel outside the checkout
+        if: matrix.python == '3.13'
+        working-directory: ${{ runner.temp }}
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          uv run --isolated --no-project --with "$GITHUB_WORKSPACE"/dist/*.whl python - <<'PY'
+          import os
+          from importlib.metadata import version
+          from importlib.resources import files
+          import anatplot
+
+          package_version = version("anatplot")
+          assert files("anatplot").joinpath("py.typed").is_file()
+          release_tag = os.environ["RELEASE_TAG"]
+          if release_tag and release_tag != f"v{package_version}":
+              raise SystemExit(f"Release tag must be v{package_version}")
+          PY
+
+      - uses: actions/upload-artifact@v7
+        if: matrix.python == '3.13'
+        with:
+          name: dist
+          path: dist/
+          if-no-files-found: error
